@@ -1,5 +1,7 @@
 # RPG Game Master
 
+<img width="995" height="854" alt="image" src="https://github.com/user-attachments/assets/d1862b1d-fd9f-4f50-8913-6a7d6fe47f2f" />
+
 ## Overview
 RPG Game Master is a web-based interactive chat application that allows users to communicate with an AI-powered bot to generate RPG-style game content. The application supports multiple languages, real-time streaming responses, and markdown formatting for rich-text messages.
 
