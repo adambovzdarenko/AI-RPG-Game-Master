@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RPG Game Master</title>
+<link rel="stylesheet" href="/static/style.css">
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+<div class="container">
+
+<h1>AI RPG Game Master</h1>
+
+<div id="language_select">
+    <p>Select language:</p>
+    {% for lang in languages %}
+    <button class="lang_btn" onclick="selectLanguage('{{lang}}')">{{lang}}</button>
+    {% endfor %}
+</div>
+
+<div id="chat" class="chat-box"></div>
+
+<div id="input-area">
+    <input id="user_input" type="text" placeholder="Type your message..." autofocus>
+    <button onclick="sendMessage()">Send</button>
+</div>
+
+</div>
+
+<script>
+const socket = io();
+const chatBox = document.getElementById("chat");
+const input = document.getElementById("user_input");
+
+let lastBotMessage = null;
+let botBuffer = ""; // Buffer for markdown
+
+function addMessage(sender, text, cls) {
+    const msg = document.createElement("div");
+    msg.className = cls;
+
+    if(cls === "bot" || cls === "bot_stream") {
+        msg.innerHTML = `<b>${sender}:</b> ${text}`;
+    } else {
+        msg.innerHTML = `<b>${sender}:</b> ${text}`;
+    }
+
+    chatBox.appendChild(msg);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// First message
+window.addEventListener("DOMContentLoaded", () => {
+    addMessage("Bot", "Send your RPG description (Theme or/and any additional information)", "bot");
+});
+
+function selectLanguage(lang){
+    socket.emit("select_language", {language: lang});
+    document.getElementById("language_select").style.display = "none";
+    addMessage("System", `Language set to ${lang}`, "system");
+}
+
+socket.on("language_selected", data => {
+    console.log("Language selected:", data.language);
+});
+
+function sendMessage() {
+    const text = input.value.trim();
+    if (!text) return;
+    addMessage("You", text, "user");
+    socket.emit("user_message", {text: text});
+    input.value = "";
+}
+
+// streaming response
+socket.on("bot_stream", data => {
+    botBuffer += data.text;
+    if(!lastBotMessage){
+        lastBotMessage = document.createElement("div");
+        lastBotMessage.className = "bot_stream";
+        lastBotMessage.innerHTML = `<b>Bot:</b> `;
+        chatBox.appendChild(lastBotMessage);
+    }
+    lastBotMessage.innerHTML = `<b>Bot:</b> ${botBuffer}`;
+    chatBox.scrollTop = chatBox.scrollHeight;
+});
+
+socket.on("bot_done", data => {
+    if(lastBotMessage){
+        // MD render
+        lastBotMessage.innerHTML = `<b>Bot:</b> ${marked.parse(botBuffer)}`;
+        lastBotMessage.className = "bot";
+        lastBotMessage = null;
+        botBuffer = "";
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+});
+
+// Enter handling
+input.addEventListener("keydown", e => {
+    if(e.key === "Enter") sendMessage();
+});
+</script>
+</body>
+</html>
