@@ -1,3 +1,8 @@
+'''
+Hey! I would be happy if anyone uses my code for their project. Just let me know if you do, im really curious :P
+Contact me: adambovzdarenko@gmail.com
+I hope this spaghetti code helps someone!
+'''
 import json
 import os
 from flask import Flask, render_template, request, jsonify
@@ -11,7 +16,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 HISTORY_FILE = "history.json"
 selected_language = "English"
 
-AVAILABLE_LANGUAGES = ["English", "Spanish", "French", "German", "Russian"]
+AVAILABLE_LANGUAGES = ["English", "Spanish", "French", "German", "Russian"] # EXAMPLE! Gemma3 supports over 140 languages ^-^
 
 # History
 def load_history():
@@ -53,7 +58,7 @@ def handle_message(data):
     save_history(history)  # SAVE AFTER EVERY MESSAGE
 
     full_answer = ""
-    system_prefix = f"You are an RPG Game Master. Language: {selected_language}. Description:"
+    system_prefix = f"You are an RPG Game Master. Language: {selected_language}. Description:" # Basic info for LLM. After the description goes first user message
 
     for chunk in chat(model="gemma3", messages=[{"role":"system","content":system_prefix}]+history, stream=True):
         if "message" in chunk and "content" in chunk["message"]:
